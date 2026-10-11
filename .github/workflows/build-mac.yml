@@ -1,0 +1,35 @@
+name: Mac アプリを作成
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: ${{ matrix.arch }} 用
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {arch: AppleSilicon, os: macos-15}
+          - {arch: Intel, os: macos-15-intel}
+    steps:
+      - name: Get project
+        uses: actions/checkout@v4
+      - name: Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.arch == 'Intel' && 'x64' || 'arm64' }}
+      - name: Package app with Python runtime
+        run: bash build_mac.sh
+      - name: Inspect application binary
+        run: |
+          file 'dist/Visual Bar Timer.app/Contents/MacOS/Visual Bar Timer'
+          codesign --verify --deep 'dist/Visual Bar Timer.app'
+      - name: Upload Mac application ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: VisualBarTimer-macOS-${{ matrix.arch }}
+          path: output/VisualBarTimer-macOS-*.zip
+          if-no-files-found: error
