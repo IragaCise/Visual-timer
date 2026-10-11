@@ -211,9 +211,18 @@ class VisualBarTimer:
         self.minute_entry.bind('<Return>', lambda e: self.apply_minutes())
         tk.Label(row1, text='分', bg=BG, fg=INK).pack(side='left')
         tk.Button(row1, text='設定', command=self.apply_minutes, padx=7).pack(side='left', padx=(5, 12))
-        self.start_btn = tk.Button(row1, text='▶ スタート', command=self.toggle, bg=INK, fg='white', padx=11)
+        # macOS/Aquaではtk.Buttonのbgが無視されることがあり、白いfgだけ残って
+        # ボタンが空白に見えてしまう。Macのみ標準のttkボタンを使用し、
+        # OS側に背景色と文字色を一括して決めてもらう。
+        if sys.platform == 'darwin':
+            self.start_btn = ttk.Button(row1, text='▶ スタート', command=self.toggle)
+            self.reset_btn = ttk.Button(row1, text='↺ リセット', command=self.reset)
+        else:
+            self.start_btn = tk.Button(row1, text='▶ スタート', command=self.toggle,
+                                       bg=INK, fg='white', padx=11)
+            self.reset_btn = tk.Button(row1, text='↺ リセット', command=self.reset)
         self.start_btn.pack(side='left', padx=(0, 5))
-        tk.Button(row1, text='↺ リセット', command=self.reset).pack(side='left')
+        self.reset_btn.pack(side='left')
 
         row2 = tk.Frame(self.controls, bg=BG)
         row2.pack(fill='x', pady=(12, 0))
